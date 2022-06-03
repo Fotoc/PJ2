@@ -147,8 +147,6 @@ public class Client {
     public int getEdat() {
         return edat;
     }
-    
-    
 
     public Client() {
         this.DNI = new Dni();
@@ -228,13 +226,11 @@ public class Client {
     }
 
     public void altaClient() throws SQLException {
-        Connection conn = ConnexioBD.getConnection();
+        //Connection conn = ConnexioBD.getConnection();
         Scanner teclat = new Scanner(System.in);
-        // solicitem el DNI a donar d'alta fins que sigui correcte
-        PreparedStatement sql = conn.prepareStatement("insert into client "
-                + "(DNI, nom, cognom, sexe, data_naix, mobil, email, usuari, contrasenya, compte_bancari)"
-                + "values "
-                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+//        PreparedStatement sql = conn.prepareStatement("insert into client " + "(DNI, nom, cognom, sexe, data_naix, mobil, email, usuari, contrasenya, compte_bancari)"
+//                + "values "
+//                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         System.out.println("*ALTA D'UN CLIENT*");
         String dni;
         Dni dniObj = new Dni();
@@ -245,6 +241,7 @@ public class Client {
         CompteBancari compobj = new CompteBancari();
         String CCC;
         do {
+            // solicitem el DNI a donar d'alta fins que sigui correcte
             System.out.println("Introdueix el DNI del client que vols donar d'alta: ");
             dni = teclat.next();
 
@@ -252,11 +249,11 @@ public class Client {
         dniObj.setDni(dni);
         setDni(dniObj);
         this.DNI = dniObj;
-        String consulta = String.format("select * from socis where DNI=" + "\"%s\"" + ";", dni);
-        PreparedStatement sql2 = conn.prepareStatement(consulta);
-        sql2.executeQuery();
-        ResultSet rs = sql2.executeQuery();
-        if (rs.next() == true) {
+        //String consulta = String.format("select * from socis where DNI=" + "\"%s\"" + ";", dni);
+        //PreparedStatement sql2 = conn.prepareStatement(consulta);
+        //sql2.executeQuery();
+        //ResultSet rs = sql2.executeQuery();
+        if (consultaClientBD(dniObj.getDni()) != null) {
             System.out.println("El client ja existeix");
             do {
                 System.out.println("Introdueix el DNI del client que vols donar d'alta: ");
@@ -272,12 +269,12 @@ public class Client {
             System.out.println("Introdueix el teu sexe: ");
             this.sexe = teclat.next();
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             boolean dataCorrecta;
 
             do {
                 dataCorrecta = true;
-                System.out.println("Introdueix data naixement de forma correcta (DD.MM.AAAA)");
+                System.out.println("Introdueix data naixement de forma correcta (AAAA-MM-DD)");
                 try {
                     this.data_naix = LocalDate.parse(teclat.next(), formatter);
                 } catch (Exception ex) {
@@ -311,49 +308,57 @@ public class Client {
                 CCC = teclat.next();
             } while (!compobj.validarIBAN(CCC));
 
+            
             compobj.setIBAN(CCC);
+            
+            altaClientBD();
 
-            sql.setString(1, this.DNI.getDni());
-            sql.setString(2, this.nom);
-            sql.setString(3, this.cognom);
-            sql.setString(4, this.sexe);
-            sql.setDate(5, java.sql.Date.valueOf(this.data_naix));
-            sql.setString(6, this.telefon.getTelefon());
-            sql.setString(7, this.correu.getEmail());
-            sql.setString(8, this.usuari);
-            sql.setString(9, this.contrasenya);
-            sql.setString(10, this.condicioFisica);
-            sql.setInt(11, this.comercial);
-            sql.setString(12, this.compteBancari.getCompte());
 
+//            sql.setString(1, this.DNI.getDni());
+//            sql.setString(2, this.nom);
+//            sql.setString(3, this.cognom);
+//            sql.setString(4, this.sexe);
+//            sql.setString(5, this.data_naix.toString());
+//            //sql.setDate(5, java.sql.Date.valueOf(this.data_naix));
+//            sql.setString(6, this.telefon.getTelefon());
+//            sql.setString(7, this.correu.getEmail());
+//            sql.setString(8, this.usuari);
+//            sql.setString(9, this.contrasenya);
+//            sql.setString(10, this.condicioFisica);
+//            sql.setInt(11, this.comercial);
+//            sql.setString(12, this.compteBancari.getCompte());
             System.out.println("Client donat d'alta amb exit");
 
         }
 
     }
 
-    /*private void altaClientBD() throws SQLException {
+    private void altaClientBD() throws SQLException {
         Connection conn = ConnexioBD.getConnection();
-
-        String query = "INSERT INTO socis VALUES (?,?,?,?,?,?,?)";
-
-        try (
-                PreparedStatement ps = conn.prepareStatement(query);) {
+        String query = "INSERT INTO socis (DNI, nom, cognom, sexe, data_naix, mobil, email, usuari, contrasenya, compte_bancari) VALUES (?,?,?,?,?,?,?,?,?,?)";
+        try {
+            PreparedStatement ps = conn.prepareStatement(query);
             cargarDadesDeClientEnSentencia(ps);
             ps.executeUpdate();
         } catch (Exception ex) {
             throw new RuntimeException("No s'ha pogut agregar un client\n" + this.DNI.getDni());
         }
+    }
 
-    }*/
     private void cargarDadesDeClientEnSentencia(PreparedStatement ps) throws SQLException {
         ps.setString(1, this.DNI.getDni());
         ps.setString(2, this.nom);
         ps.setString(3, this.cognom);
-        ps.setString(4, this.compteBancari.getCompte());
-        ps.setString(5, this.telefon.getTelefon());
-        ps.setString(6, this.correu.getEmail());
-        ps.setString(7, data_naix.toString());
+        ps.setString(4, this.sexe);
+        ps.setString(5, this.data_naix.toString());
+        //ps.setDate(5, java.sql.Date.valueOf(this.data_naix));
+        ps.setString(6, this.telefon.getTelefon());
+        ps.setString(7, this.correu.getEmail());
+        ps.setString(8, this.usuari);
+        ps.setString(9, this.contrasenya);
+        ps.setString(10, this.condicioFisica);
+        ps.setInt(11, this.comercial);
+        ps.setString(12, this.compteBancari.getCompte());
     }
 
     private void cargarDadesDeSentenciaEnClient(ResultSet rs) throws SQLException {

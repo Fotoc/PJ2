@@ -1,5 +1,5 @@
 package Projecte2;
-import Projecte.Activitats;
+//import Projecte.Activitats;
 import Projecte2.ConnexioBD;
 import Projecte2.Client;
 import java.io.IOException;
@@ -14,13 +14,13 @@ public class Gimnas {
     private String nom;
     private String CIF;
     ArrayList<Client> clients;
-    ArrayList<Activitats> activitats;
+    //ArrayList<Activitats> activitats;
     /*ArrayList<Reserves> reserves;*/
     private String telefon;
 
     public Gimnas(){
     this.clients = new ArrayList<>();
-    this.activitats = new ArrayList<>();
+    //this.activitats = new ArrayList<>();
     //this.reserves = new ArrayList<>();
 
     }
