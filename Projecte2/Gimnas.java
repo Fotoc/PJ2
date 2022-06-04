@@ -87,7 +87,7 @@ public class Gimnas {
                     c.altaClient();
                     break;
                 case 3:
-                    // baixaClient();
+                    c.baixaClient();
                     break;
                 case 4:
                     // modificarClient();
@@ -129,16 +129,16 @@ public class Gimnas {
 
             switch (opcio) {
                 case 1:
-                    this.clients = client.getClientOrdenatsCognoms();
+                    this.clients = client.ClientOrdenatsCognoms();
                     visualitzarClients();
                     break;
 
                 case 2:
-                    // this.clients = client.getClientOrdenatsEdat();
-                    // visualitzarClients();
+                     this.clients = client.ClientOrdenatsEdat();
+                     visualitzarClients();
                     break;
                 case 3:
-                    this.clients = client.getClientOrdenatsReserves();
+                    this.clients = client.ClientOrdenatsReserves();
                     visualitzarClients();
                     break;
                 case 4:

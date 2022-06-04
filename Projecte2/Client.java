@@ -226,11 +226,11 @@ public class Client {
     }
 
     public void altaClient() throws SQLException {
-        //Connection conn = ConnexioBD.getConnection();
+        Connection conn = ConnexioBD.getConnection();
         Scanner teclat = new Scanner(System.in);
-//        PreparedStatement sql = conn.prepareStatement("insert into client " + "(DNI, nom, cognom, sexe, data_naix, mobil, email, usuari, contrasenya, compte_bancari)"
-//                + "values "
-//                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement sql = conn.prepareStatement("insert into client " + "(DNI, nom, cognom, sexe, data_naix, mobil, email, usuari, contrasenya, compte_bancari)"
+                + "values "
+                + "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         System.out.println("*ALTA D'UN CLIENT*");
         String dni;
         Dni dniObj = new Dni();
@@ -240,6 +240,7 @@ public class Client {
         String emai;
         CompteBancari compobj = new CompteBancari();
         String CCC;
+
         do {
             // solicitem el DNI a donar d'alta fins que sigui correcte
             System.out.println("Introdueix el DNI del client que vols donar d'alta: ");
@@ -247,14 +248,14 @@ public class Client {
 
         } while (!dniObj.validarDNI(dni));
         dniObj.setDni(dni);
-        setDni(dniObj);
+        setDNI(dniObj);
         this.DNI = dniObj;
-        //String consulta = String.format("select * from socis where DNI=" + "\"%s\"" + ";", dni);
-        //PreparedStatement sql2 = conn.prepareStatement(consulta);
-        //sql2.executeQuery();
-        //ResultSet rs = sql2.executeQuery();
+        String consulta = String.format("select * from socis where DNI=" + "\"%s\"" + ";", dni);
+        PreparedStatement sql2 = conn.prepareStatement(consulta);
+        sql2.executeQuery();
+        ResultSet rs = sql2.executeQuery();
         if (consultaClientBD(dniObj.getDni()) != null) {
-            System.out.println("El client ja existeix");
+            System.out.println("\nEl client ja existeix");
             do {
                 System.out.println("Introdueix el DNI del client que vols donar d'alta: ");
                 dni = teclat.next();
@@ -269,12 +270,12 @@ public class Client {
             System.out.println("Introdueix el teu sexe: ");
             this.sexe = teclat.next();
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
             boolean dataCorrecta;
 
             do {
                 dataCorrecta = true;
-                System.out.println("Introdueix data naixement de forma correcta (AAAA-MM-DD)");
+                System.out.println("Introdueix data naixement de forma correcta (AAAA/MM/DD)");
                 try {
                     this.data_naix = LocalDate.parse(teclat.next(), formatter);
                 } catch (Exception ex) {
@@ -308,11 +309,9 @@ public class Client {
                 CCC = teclat.next();
             } while (!compobj.validarIBAN(CCC));
 
-            
             compobj.setIBAN(CCC);
-            
-            altaClientBD();
 
+            altaClientBD();
 
 //            sql.setString(1, this.DNI.getDni());
 //            sql.setString(2, this.nom);
@@ -327,7 +326,7 @@ public class Client {
 //            sql.setString(10, this.condicioFisica);
 //            sql.setInt(11, this.comercial);
 //            sql.setString(12, this.compteBancari.getCompte());
-            System.out.println("Client donat d'alta amb exit");
+            System.out.println("Client donat d'alta amb exit" + this);
 
         }
 
@@ -345,13 +344,39 @@ public class Client {
         }
     }
 
+    public void baixaClient() {
+        Connection conn = ConnexioBD.getConnection();
+        Scanner teclat = new Scanner(System.in);
+        System.out.println("Baixa d'un client");
+        String sentenciaSql = "DELETE FROM socis WHERE DNI = ?";
+        System.out.println("Quin es el soci que li vols donar de baixa?");
+        String DNI = teclat.nextLine();
+        teclat.nextLine();
+        PreparedStatement sentencia = null;
+        try {
+            PreparedStatement ps = conn.prepareStatement(sentenciaSql);
+            sentencia.setString(1, DNI);
+            sentencia.executeUpdate();
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        } finally {
+            if (sentencia != null) {
+                try {
+                    sentencia.close();
+                } catch (SQLException sqle) {
+                    sqle.printStackTrace();
+                }
+            }
+        }
+        System.out.println("\nSoci eliminat de la base de dades amb exit");
+    }
+
     private void cargarDadesDeClientEnSentencia(PreparedStatement ps) throws SQLException {
         ps.setString(1, this.DNI.getDni());
         ps.setString(2, this.nom);
         ps.setString(3, this.cognom);
         ps.setString(4, this.sexe);
         ps.setString(5, this.data_naix.toString());
-        //ps.setDate(5, java.sql.Date.valueOf(this.data_naix));
         ps.setString(6, this.telefon.getTelefon());
         ps.setString(7, this.correu.getEmail());
         ps.setString(8, this.usuari);
@@ -362,51 +387,64 @@ public class Client {
     }
 
     private void cargarDadesDeSentenciaEnClient(ResultSet rs) throws SQLException {
-        this.setDni(new Dni(rs.getString("DNI")));
-        this.setNom(rs.getString("nom"));
-        this.setCognom(rs.getString("cognom"));
+        this.setDNI(new Dni(rs.getString("DNI")));
+        this.setnom(rs.getString("nom"));
+        this.setcognom(rs.getString("cognom"));
+        this.setSexe(rs.getString("sexe"));
+        this.setdata_naix(rs.getDate("data_naix").toLocalDate());
+        this.setComercial(rs.getInt("comunicacio_comercial"));
+        this.setCondicioFisica(rs.getString("condicio_fisica"));
+        calcularEdad();
         this.correu = new Email(rs.getString("email"));
         this.compteBancari = new Iban(rs.getString("compte_bancari"));
         this.telefon = new Telefon(rs.getString("mobil"));
-
-        this.setData_naix(rs.getDate("data_naix").toLocalDate());
         calcularEdad();
+
     }
 
-    private void setData_naix(LocalDate localDate) {
-    }
-
-    private void setCCC(CompteBancari compteBancari2) {
-    }
-
-    private void setCognom(String string) {
-    }
-
-    private void setNom(String string) {
-    }
-
-    private void setDni(Dni dni2) {
-    }
-
-    public ArrayList<Client> getClientOrdenatsCognoms() throws SQLException {
+    public ArrayList<Client> ClientOrdenatsCognoms() throws SQLException {
         ArrayList<Client> clients = new ArrayList<>();
         Connection conn = ConnexioBD.getConnection();
 
-        String consulta = "SELECT * FROM socis ORDER BY cognoms, nom";
+        String consulta = "SELECT * FROM socis ORDER BY cognom, nom;";
         PreparedStatement sentencia = conn.prepareStatement(consulta);
 
         ResultSet rs = sentencia.executeQuery();
+        System.out.println("Clients ordenats pel seu cognom");
 
         while (rs.next()) {
             Client c1 = new Client();
             c1.cargarDadesDeSentenciaEnClient(rs);
 
             clients.add(c1);
+            System.out.println(rs.getString(1));
+        }
+
+        return clients;
+    }
+
+    public ArrayList<Client> ClientOrdenatsEdat() throws SQLException {
+        ArrayList<Client> clients = new ArrayList<>();
+        Connection conn = ConnexioBD.getConnection();
+
+        String consulta = "SELECT * FROM socis ORDER BY data_naix;";
+        PreparedStatement ps = conn.prepareStatement(consulta);
+
+        ResultSet rs = ps.executeQuery();
+
+        System.out.println("Llista de tots els clients ordenats per edat\n");
+
+        while (rs.next()) {
+            Client cli = new Client();
+            cli.cargarDadesDeSentenciaEnClient(rs);
+
+            clients.add(cli);
+            System.out.println(rs.getString(1));
         }
         return clients;
     }
 
-    public ArrayList<Client> getClientOrdenatsReserves() throws SQLException {
+    public ArrayList<Client> ClientOrdenatsReserves() throws SQLException {
         ArrayList<Client> clients = new ArrayList<>();
 
         Connection conn = ConnexioBD.getConnection();
@@ -421,6 +459,7 @@ public class Client {
             c1.cargarDadesDeSentenciaEnClient(rs);
 
             clients.add(c1);
+            System.out.println(rs.getString(1));
         }
         return clients;
     }

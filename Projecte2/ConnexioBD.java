@@ -36,5 +36,10 @@ public class ConnexioBD {
 
         return conn;
     }
+    
+    
+    public void tancarConnexioBD() throws SQLException {
+        
+    }
    
 }
